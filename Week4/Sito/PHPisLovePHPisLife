@@ -1,0 +1,6 @@
+Stringa = } print ${$strings{4}}; ?>
+
+La } chiude l'anonymous function e ?> chiude il tag, bypassando il ) e mandando in esecuzione il codice
+Nota che l'accesso ad un array puo' essere fatto con {}
+Un'altra idea carina e' quella di bypassare le limitazioni usando fl{$x}ag che diventa flag, in questo contesto non si poteva usare, probabilmente perche' c'erano problemi di precedenza di valutazione nella stringa
+} print "${fl{$x}ag}"; ?>

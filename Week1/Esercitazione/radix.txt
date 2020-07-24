@@ -1,0 +1,5 @@
+Can you find the password to Radix's login?
+
+cGljb0NURntiQXNFXzY0X2VOQ29EaU5nX2lTX0VBc1lfMTg3NTk3NDV9
+
+picoCTF{bAsE_64_eNCoDiNg_iS_EAsY_18759745}

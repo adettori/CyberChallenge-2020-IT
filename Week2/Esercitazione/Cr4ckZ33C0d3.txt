@@ -1,0 +1,2 @@
+copied the constraints
+imposed some more reasonable constraints and generated a valid string

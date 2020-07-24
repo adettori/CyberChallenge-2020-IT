@@ -1,0 +1,2 @@
+Nota: il codice di errore di int 80 viene passato a eax
+Lo shellcode ha creato molti problemi perche' non azzerava il registro edx nella chiamata a execve(), passandogli quindi un environment pointer invalido

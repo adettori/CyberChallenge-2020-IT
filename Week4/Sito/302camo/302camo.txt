@@ -1,0 +1,2 @@
+nc -l -p 8000 -v < mock.response
+Si poteva fare facendo anche un wget del risultato, altrimenti chiedendo un svg firefox non puo' fare un display e quindi lo scarica. All'interno c'e' la flag.

@@ -1,0 +1,3 @@
+use clockify star trek cipher to decode the file
+interpret modbus file and extract all reg values as in script.py
+plot points, they are letters

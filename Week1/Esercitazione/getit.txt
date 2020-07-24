@@ -1,0 +1,3 @@
+Open and read the flag file!
+
+SharifCTF{b70c59275fcfa8aebf2d5911223c6589}

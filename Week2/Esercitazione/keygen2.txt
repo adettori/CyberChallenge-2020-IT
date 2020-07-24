@@ -1,0 +1,3 @@
+molto utile il costrutto if per convertire i Bool in BitVec
+Ghidra ha inutilmente complicato il codice cercando di transformare l'istruzione test: prestare attenzione a queste stranezze
+La funzione di codifica dei char in numeri non e' standard... attenzione

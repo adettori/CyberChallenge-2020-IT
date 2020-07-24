@@ -1,0 +1,234 @@
+01 18 00 first 24 bytes input
+02 2d ff a[0xff] = 2d
+09 04 ff a[0x4] == 2d
+09 09 ff a[0x9] == 2d
+09 0e ff a[0xe] == 2d
+09 13 ff a[0x13] == 2d
+00 
+00 
+02 f0 ff a[0xff] = f0
+06 00 ff 80 a[80] ... a[81] ... a[97] & f0 == 40 => 40 o 41 o 42 ...
+06 01 ff 81 a[81] = 01
+06 02 ff 82 
+06 03 ff 83 
+06 05 ff 85 
+06 06 ff 86 
+06 07 ff 87 
+06 08 ff 88 
+06 0a ff 8a 
+06 0b ff 8b 
+06 0c ff 8c 
+06 0d ff 8d 
+06 0f ff 8f 
+06 10 ff 90
+06 11 ff 91 
+06 12 ff 92 
+06 14 ff 94 
+06 15 ff 95 
+06 16 ff 96 
+06 17 ff 97 ....
+02 40 ff a[ff] = 40
+09 80 ff a[80] == 40
+09 81 ff a[81] == 40
+09 82 ff
+09 83 ff ....
+09 85 ff 
+09 86 ff 
+09 87 ff 
+09 88 ff 
+09 8a ff 
+09 8b ff 
+09 8c ff 
+09 8d ff 
+09 8f ff 
+09 90 ff 
+09 91 ff 
+09 92 ff 
+09 94 ff 
+09 95 ff
+09 96 ff ...
+09 97 ff a[97] == 40
+00 
+
+
+OK UNTIL HERE
+02 0f fe a[fe] = 0f
+02 f0 ff a[ff] = f0
+00 
+00 
+02 27 cc a[cc] = 27
+02 00 ce a[ce] = 00
+06 00 fe cd a[cd] = 0f and a[00]
+07 cd ff cd a[cd] = (0f and a[00]) or f0
+00 
+00 
+05 cd 	a[cd] = not ((0f and a[00]) or f0)
+03 cd ce ce  	a[ce] = a[cd] + a[ce] = not ((0f and a[00]) or f0) + 00 = a[ce] = a[cd]
+06 01 fe cd 	a[cd] = a[01] and 0f
+07 cd ff cd 	a[cd] = 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 02 fe cd 
+07 cd ff cd 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 03 fe cd 
+07 cd ff cd 
+00 
+00 
+05 cd 
+03 cd ce ce 
+02 f3 cd 
+04 ce cd ce 
+08 ce cc cc
+09 cc d0 
+
+
+
+02 37 cc 
+02 00 ce 
+06 05 fe cd 
+07 cd ff cd 
+00 
+05 cd 
+03 cd ce ce
+06 06 fe cd 
+07 cd ff cd
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 07 fe cd 
+07 cd ff cd
+00 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 08 fe cd 
+07 cd ff cd 
+00 
+05 cd
+03 cd ce ce 
+02 cd cd 
+00 
+00 
+00 
+04 ce cd ce 
+08 ce cc cc 
+00 
+09 cc d0 
+00 
+00 
+00 
+00 
+02 14 cc 
+02 00 ce 
+06 0a fe cd 
+07 cd ff cd 
+00 
+05 cd 
+03 cd ce ce 
+06 0b fe cd 
+07 cd ff cd
+00 
+00 
+00 
+05 cd
+03 cd ce ce 
+06 0c fe cd  
+07 cd ff cd 
+00 
+00 
+05 cd
+03 cd ce ce 
+06 0d fe cd  
+07 cd ff cd 
+00 
+00 
+00 
+05 cd 
+03 cd ce ce 
+02 1a cd  
+00 
+00 
+00 
+04 ce cd ce 
+08 ce cc cc 
+00 
+00
+09 cc d0 
+
+00 
+02 af cc 
+02 00 ce 
+06 0f fe cd 
+07 cd ff cd 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 10 fe cd 
+07 cd ff cd 
+00  
+00 
+05 cd 
+03 cd ce ce 
+06 11 fe cd 
+07 cd ff cd 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 12 fe cd 
+07 cd ff cd 
+00
+00
+05 cd 
+03 cd ce ce 
+02 66 cd 
+04 ce cd ce 
+08 ce cc cc 
+00 
+09 cc d0 00 
+00
+00 
+00 
+00 
+02 ba cc 
+02 00 ce 
+06 14 fe cd 
+07 cd ff cd 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 15 fe cd 
+07 cd ff cd 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 16 fe cd 
+07 cd ff cd 
+00 
+00 
+00 
+05 cd 
+03 cd ce ce 
+06 17 fe cd 
+07 cd ff cd 
+05 cd 
+03 cd ce ce 
+02 4d cd 
+00 
+00 
+00 
+04 ce cd ce 
+08 ce cc cc 
+00 
+09 cc d0                  

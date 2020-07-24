@@ -1,0 +1,3 @@
+looked for .exe in wireshark filter
+saved the binary, changed the magic number to correct windows exe format
+executed in wine and tried every single letter of the alphabet: flag

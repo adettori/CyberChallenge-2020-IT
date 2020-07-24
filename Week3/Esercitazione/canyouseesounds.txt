@@ -1,0 +1,4 @@
+cercato mail
+risalito allo stream della conversazione tramite il tab statistics
+scaricato l'attachment ottenuto dall'user tramite http
+usata una modalita transform di sonic-visualizer per trovare il segreto...

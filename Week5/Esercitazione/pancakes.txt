@@ -1,0 +1,1 @@
+Nota: call mette in cima alla stack l'argomento di ritorno, quindi il vero argomento della funzione deve essere a 2 indirizzi di distanza rispetto all'istruzione della funzione da chiamare.

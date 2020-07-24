@@ -1,0 +1,1 @@
+leggendo il codice decompilato da ghidra in validate_key() si capisce che la chiave per essere valida deve avere la ord(char) dei primi 15 caratteri moltiplicati per l'indice e il risultato sommato tra di loro uguale in modulo 36 all'ord(ultimo char. i.e.  N00000000000000Z

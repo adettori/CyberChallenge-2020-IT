@@ -1,0 +1,6 @@
+Nota: il cat serve a mantenere aperta la shell di invio in modo che poi l'output venga mandato alla shell dello shellcode
+
+Nota inoltre che la gets etc si fermano solo dopo \n o EOF quindi il comando deve essere preceduto da echo '\n'
+i.e.
+
+(shellcraft -f r -n -z i386.linux.sh; echo '\n';echo id) | ./shellcode32

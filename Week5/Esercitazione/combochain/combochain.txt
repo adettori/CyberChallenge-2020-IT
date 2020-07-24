@@ -1,0 +1,5 @@
+Nota:got.plt != .plt
+
+la chiamata a printf ha dato problemi a meno di mettere il secondo parametro a 0
+
+Il server potrebbe avere delle libc diverse per questo usare il sito https://libc.blukat.me/ per trovare la versione una volta che si hanno almeno due chiamate di sistema nella libc ottenute tramite information leak dalla got

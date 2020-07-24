@@ -1,0 +1,2 @@
+slow approach but it worked anyway, I generated the flag by rewriting the procedure inside the program in C
+the intended way to proceed was to notice that the program makes a system call to do a ptrace check and the hacker has to circumvent this limitation by patching, jumping or other means

@@ -1,0 +1,2 @@
+Cercando gli indirizzi delle funzioni da ghidra o strings l'indirizzo era sbagliato di un offset di 10000 rispetto a quello corretto del sito https://libc.blukat.me/
+Il problema richiede diversi tentativi in modo che l'indirizzo di ebp all'interno della funzione check_status(), che poi diventera' esp prima del ret del main e eip dopo il ret, deve puntare all'interno dell'array allocato per lo scanf e che contiene anche una nop slide fatta di rop

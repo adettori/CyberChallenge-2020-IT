@@ -1,0 +1,3 @@
+Calcolato fib(1026) con un programma c in long e patchato il risultato in nel binario
+
+2031515575192820568

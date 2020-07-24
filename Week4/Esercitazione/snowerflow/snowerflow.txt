@@ -1,0 +1,4 @@
+indirizzo main: 0x401167
+
+Nota: in questo esercizio ci interessava chiamare una funzione nascosta e non fare partire la shell
+Nota anche che non essendo pie attivato l'indirizzo della funzione rimane sempre uguale

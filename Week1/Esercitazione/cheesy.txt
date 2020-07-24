@@ -1,0 +1,10 @@
+Where will you find the flag?
+
+RkxBR2ZsYWdGTEFHZmxhZ0ZMQUdmbGFn
+Q2FuIHlvdSByZWNvZ25pemUgYmFzZTY0Pz8=
+Z2lnZW17M2E1eV9SM3YzcjUxTjYhfQ==
+WW91IGp1c3QgbWlzc2VkIHRoZSBmbGFn
+
+gigem{3a5y_R3v3r51N6!}
+
+la fregatura era nel messaggio che stampava, diverso da quello che conteneva all'interno.

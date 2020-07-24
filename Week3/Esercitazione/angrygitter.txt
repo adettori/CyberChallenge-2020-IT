@@ -1,0 +1,1 @@
+scaricare l'object pack dal log wireshark e usare git unpack-objects e poi fare un checkout dell'oggetto che e' una commit

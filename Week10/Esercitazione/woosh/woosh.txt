@@ -1,0 +1,3 @@
+for (i = 0; i < 10000; i++) {
+  socket.emit("click", shapes[0].x,shapes[1].y);
+}

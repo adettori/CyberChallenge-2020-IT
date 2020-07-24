@@ -1,0 +1,58 @@
+GDB mette alcune variabili di ambiente all'inizio della stack e questo sfasa gli indirizzi normalmente presenti. Per evitare attaccarsi al processo una volta gia' eseguito con il comando di sotto.
+
+
+Eseguire un programma con ASLR disattivato:
+    - setarch $(uname -m) -R  /path/to/binary
+
+Attaccarsi a un programma con gdb:
+    - sudo gdb -p $(pidof binary)
+
+Avviare un programma con ASLR disattivato e attaccarsi:
+    - setarch $(uname -m) -R  /path/to/binary & sudo gdb -p $(pidof binary)
+
+-- Comandi di pwntools -- more @ http://docs.pwntools.com/en/stable/
+
+*Da Linea di comando*
+Creare un template:
+    Exploit solo in locale -> pwn template /path/to/binary > exp.py
+    Exploit remoto e locale -> pwn template /path/to/binary --host 10.10.10.10 --port 1337 > exp.py
+    Per comunicare in generale con un servizio online, del quale non si ha il binario -> pwn template --host 10.10.10.10 --port 1337 > exp.py
+
+Come utilizzare il template:
+    Per eseguire l'exploit in locale -> ./exp.py LOCAL 
+                           in locale senza ASLR -> ./exp.py LOCAL NOASLR
+                           in locale debuggando con GDB -> ./exp.py LOCAL GDB
+                           in locale debuggando con GDB senza ASLR -> ./exp.py LOCAL GDB NOASLR
+                           in remoto -> ./exp.py
+    n.b: Se pwntools si lamenta del fatto che non può eseguire GDB e siete su ubuntu 
+         probabilmente basta mettere `context.terminal = ['gnome-terminal', '-e']` all'inizio dello script
+
+*Da script*
+Generare uno shellcode:
+    Tra quelli pre esistenti -> binsh_sh = asm(shellcraft.amd64.sh()) 
+    A mano: 
+        code = '''
+        mov eax, 0x12345678
+        jmp ebx
+        '''
+        shellcode = asm(code) # Lo assembla lui per voi, e ritorna i byte
+Comunicare con un processo:
+```
+exe = context.binary = '/path/to/binary' # Così pwntools prepara il contesto per bene
+p = process('/path/to/binary')
+
+p.recvuntil(b'Ciao\n') # Ricevi fino a Ciao a capo
+p.recv() # Ricevi fino a che puoi
+p.recv(2) # Ricevi 2 byte
+p.recvall() # Ricevi fino a EOF
+p.recvline() # Ricevi una linea (stessa cosa di p.recvuntil('\n') probabilmente)
+
+p.send(b'\x12\x34') # Invia 2 byte
+p.sendline('\x12\x34') # Invia 3 byte in tutto, \x12\x34 e \x0a ovvero newline
+p.send(p32(0x1234)) # Invia il numero 0x1234 esteso con zeri su 32 bit, con la giusta endianess per il binario target
+
+es.) p32(0x1234) == p32(0x00001234) == '\x34\x12\x00\x00' == '\x00\x00\x12\x34'[::-1]
+
+exe.symbols['main'] # Indirizzo di main, se il programma non è strippato
+
+```

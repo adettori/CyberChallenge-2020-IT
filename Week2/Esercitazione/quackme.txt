@@ -1,0 +1,4 @@
+read the ghidra result
+copied the buffers
+xored them
+profit

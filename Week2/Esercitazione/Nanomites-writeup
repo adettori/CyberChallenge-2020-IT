@@ -1,0 +1,20 @@
+processo padre debugga processo figlio
+il processo padre deve intervenire in alcune azioni del figlio i.e. se il figlio fa segmentation fault il padre prende il controllo e lo rimette in sesto.
+
+in questa versione non sono legati in modo stretto quindi e' possibile debuggare
+
+IMPORTARE STRUCT IN GHIDRA invece di semplicemente gestire tutte le variabili su rbp
+
+ghidra->file->parse c source->change type to struct
+
+copy special
+
+lib python unhexlify
+
+\xval per dare un valore ascii a una stringa in c
+
+riordinare in byte i blocchi di dati!
+
+strippato = eliminare tabella dei simboli dell'eseguibile
+
+ptrace(PTRACE_ME) controlla se il programma e' gia' tracciato

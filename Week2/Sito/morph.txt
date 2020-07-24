@@ -1,0 +1,3 @@
+idea molto interessante: il codice si camuffa da solo attraverso vari xor e alla fine pero' non riesce piu' ad eseguirsi
+
+correzione: si esegue perfettamente ma non ci avevo fatto caso...

@@ -1,0 +1,7 @@
+CCIT{72318565-c76d-4ed9-81b6-afc582e75777}
+CCIT{997874cf-581a-49ca-a449-51d24dd31fa5}
+CCIT{0fc0a412-4184-4c9d-af48-498f7bc713db} //Sostuire nella PATH echo con uno script
+CCIT{b5b43a28-962d-42ea-92b6-cefa552766a0} //Code injection da env var USER
+CCIT{c1cd2007-55bb-4a40-9f91-21f5e2207db1} //Navigare con cd e leggere con r o open
+CCIT{4c886115-a6ca-4141-b0a2-69a25cadceaf} //Evitare "flag.txt" nel nome del file, usare symlink... oppure estrarre il filesystem dall'iso
+CCIT{d276936f-92c2-4960-a0d8-afeac6c83d15} //Due semplici script bash con nc per sfruttare l'access race condition toctou

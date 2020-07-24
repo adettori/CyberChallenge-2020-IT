@@ -1,0 +1,4 @@
+La sig-database e' stata presa da https://github.com/push0ebp/sig-database ma non e' servita
+
+Una volta capita la struttura del codice e' stato facile fare il bruteforce del canary, il vero problema e' stato fare il payload. Alla fine ho usato ropper e aggiustato il risultato cercando gadget adeguati.
+A quanto pare e' possibile scrivere in .data e .bss per salvarci la stringa /bin/sh

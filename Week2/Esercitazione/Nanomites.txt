@@ -1,0 +1,3 @@
+Molto necessario prestare attenzione alla funzione trap e alla successione di indirizzi tra un'interruzione e l'altra in quanto quelli saranno i valori di counter nell'espressione che individua i dati in data_array
+
+Il programma figlio puo' continuare dopo la trap in quanto il padre resetta la flag zero

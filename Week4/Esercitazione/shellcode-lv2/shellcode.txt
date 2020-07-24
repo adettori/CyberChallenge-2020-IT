@@ -1,0 +1,1 @@
+Address shbig in shellcode32: 0x804a060 (bisogna settare arg di asm() vma) oppure usa istruzioni lea eax, ebx+0x60 jmp eax

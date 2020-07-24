@@ -1,0 +1,4 @@
+nc rev.tamuctf.com 8188
+
+Password WattoSays
+Too bad the flag is only on the remote server!

@@ -1,0 +1,6 @@
+Idea:
+		- E' possibile crackare il random() di python ma solo in locale (inutile in questo scenario)
+		- Con un po' di ricerca si scopre che lo script usa il modulo pycrypto
+		- Il padding e' un valore dipendente dalla lunghezza della stringa, ripetuto al piu' 16 volte
+		- Guardando il funzionamento del programma con input "" e il funzionamento di ECB si vede che la flag deve essere di lunghezza 31, dato che flag + padding hanno lunghezza 32 criptati ma 'a'+flag+padding hanno lunghezza 48
+		- Si deve pushare gradualmente il valore della flag nel blocco di padding, in modo da dover provare solo un carattere alla volta. Per questioni di timeout e' necessario uno script.

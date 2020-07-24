@@ -1,0 +1,1 @@
+prendere l'ultimo byte di tutti i pacchetti con protocollo sconosciuto e decodificare in base64

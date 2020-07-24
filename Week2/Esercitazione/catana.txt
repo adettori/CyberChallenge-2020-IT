@@ -1,0 +1,4 @@
+tentativo di reimplementare la funzione ha dato pochi frutti, anche se di sicuro mi ricordero' per sempre degli errori di macchina
+in compenso so che si puo risolvere con frida cambiando gli output della funzione... interessante
+
+Nota bene: javascript salva tutti i numeri in double floating point quindi non possono essere piu' grandi di 2^51-1 

@@ -1,0 +1,1 @@
+After correctly labeling the c++ decompiled code it was simply a matter of following the code in reverse starting from the 2 byte strings embedded in the binary

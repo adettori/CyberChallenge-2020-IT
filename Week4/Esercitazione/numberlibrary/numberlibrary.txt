@@ -1,0 +1,2 @@
+Unica difficolta' e' stata codificare l'assembly in long dato che il valore dato al programma in c era piu' grande del massimo valore positivo di long.
+E' stato necessario dargli la versione negativa in complemento a 2
